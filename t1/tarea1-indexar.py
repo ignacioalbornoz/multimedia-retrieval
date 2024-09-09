@@ -20,11 +20,13 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
     
     # 1-leer imágenes en dir_input_imagenes
     # puede servir la funcion util.listar_archivos_en_carpeta() que está definida en util.py
+    print("1-leer imágenes en dir_input_imagenes")
     imagenes = util.listar_archivos_en_carpeta(dir_input_imagenes_R)
 
     # 2-calcular descriptores de imágenes
     # ver codigo de ejemplo publicado en el curso
-    
+    print("2-calcular descriptores de imágenes")
+    '''
     descriptores = {}
 
     for imagen_nombre in imagenes:
@@ -47,9 +49,12 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             'color_histogram': descriptor_color.tolist()
         }
 
+    '''
+    descriptores = util.procesar_imagenes_en_paralelo(imagenes, dir_input_imagenes_R)
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos
     # puede servir la funcion util.guardar_objeto() que está definida en util.py
-    util.guardar_objeto(descriptores, os.path.join(dir_output_descriptores_R, 'descriptores.pkl'))
+    print("3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos")
+    util.guardar_objeto(descriptores, dir_output_descriptores_R, 'descriptores.pkl')
     print(f"Descriptores guardados en {dir_output_descriptores_R}")
 
 
