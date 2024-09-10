@@ -25,7 +25,7 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
     # ver codigo de ejemplo publicado en el curso
     print("1-calcular descriptores de Q para imágenes en dir_input_imagenes_Q")
     imagenes_q = util.listar_archivos_en_carpeta(dir_input_imagenes_Q)
-    '''
+
     descriptores_q = {}
     
     for imagen_nombre in imagenes_q:
@@ -45,20 +45,15 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
             'fft': descriptor_q_fft,
             'color': descriptor_q_color
         }
-    '''
-    descriptores_q = util.procesar_imagenes_en_paralelo(imagenes_q, dir_input_imagenes_Q)
+    
+
     # 2-leer descriptores de R guardados en dir_input_descriptores_R
     # puede servir la funcion util.leer_objeto() que está definida en util.py
-    descriptores_r = util.leer_objeto(os.path.join(dir_input_descriptores_R, 'descriptores.pkl'))
-
-    # Se convierten los descriptores de R en matrices NumPy para hacer los cálculos de manera vectorizada
-    descriptores_r_grayscale = np.array([descriptores_r[imagen]['grayscale'] for imagen in descriptores_r])
-    descriptores_r_fft = np.array([descriptores_r[imagen]['fft'] for imagen in descriptores_r])
-    descriptores_r_color = np.array([descriptores_r[imagen]['color'] for imagen in descriptores_r])
-
-    imagenes_r = list(descriptores_r.keys())  # Lista de nombres de las imágenes R
+    print("2-leer descriptores de R guardados en dir_input_descriptores_R")
+    descriptores_r = util.leer_objeto(dir_input_descriptores_R, 'descriptores.pkl')
 
     # 3-para cada descriptor q localizar el mas cercano en R
+    print("3-para cada descriptor q localizar el mas cercano en R")
     resultados = []
     
     for imagen_q, descriptores_q_data in descriptores_q.items():
@@ -68,24 +63,17 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
             'color': {'imagen_r': None, 'distancia': float('inf')}
         }
 
-        # Calcula distancias para todos los descriptores de una sola vez
-        for tipo_descriptor in descriptores_q_data:
-            descriptor_q = descriptores_q_data[tipo_descriptor]
-            
-            if tipo_descriptor == 'grayscale':
-                distancias = util.calcular_distancia_lote(descriptor_q, descriptores_r_grayscale)
-            elif tipo_descriptor == 'fft':
-                distancias = util.calcular_distancia_lote(descriptor_q, descriptores_r_fft)
-            elif tipo_descriptor == 'color':
-                distancias = util.calcular_distancia_lote(descriptor_q, descriptores_r_color)
-
-            # Encuentra la distancia mínima y la imagen correspondiente
-            indice_mejor = np.argmin(distancias)
-            distancia_mejor = distancias[indice_mejor]
-            imagen_r_mejor = imagenes_r[indice_mejor]
-
-            mejores_resultados[tipo_descriptor]['imagen_r'] = imagen_r_mejor
-            mejores_resultados[tipo_descriptor]['distancia'] = distancia_mejor
+        for imagen_r, descriptores_r_data in descriptores_r.items():
+            # Itera sobre cada tipo de descriptor por separado
+            for tipo_descriptor in descriptores_q_data:
+                descriptor_q = descriptores_q_data[tipo_descriptor]
+                descriptor_r = descriptores_r_data[tipo_descriptor]
+                distancia = util.calcular_distancia(np.array(descriptor_q), np.array(descriptor_r))
+                
+                # Si la distancia es menor, se actualiza el mejor resultado para ese descriptor
+                if distancia < mejores_resultados[tipo_descriptor]['distancia']:
+                    mejores_resultados[tipo_descriptor]['imagen_r'] = imagen_r
+                    mejores_resultados[tipo_descriptor]['distancia'] = distancia
 
         # Agrega los mejores resultados para cada tipo de descriptor
         for tipo_descriptor in mejores_resultados:
@@ -95,7 +83,6 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
                 tipo_descriptor,
                 mejores_resultados[tipo_descriptor]['distancia']
             ])
-
 
     # 4-escribir en el archivo file_output_resultados un archivo con tres columnas separado por \t:
     # columna 1: imagen_q

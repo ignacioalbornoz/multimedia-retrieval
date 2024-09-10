@@ -64,29 +64,18 @@ def escribir_lista_de_columnas_en_archivo(lista_con_columnas, archivo_texto_sali
             texto = "\t".join(textos)
             print(texto, file=handle)
 
+def calcular_distancia(descriptor_q, descriptor_r):
+    """Calcula la distancia entre dos descriptores usando la distancia euclidiana."""
+    return np.linalg.norm(descriptor_q - descriptor_r)
 
-'''
+
 def calcular_descriptores_grayscale(image):
     """Calcula descriptores en escala de grises para una imagen dada."""
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Histogram in grayscale
     histogram = cv2.calcHist([grayscale_image], [0], None, [256], [0, 256])
     return histogram.flatten()
-'''
 
-def calcular_descriptores_grayscale(image):
-    """Calcula descriptores en escala de grises para una imagen dada."""
-    # Verifica si la imagen ya está en escala de grises
-    if len(image.shape) == 3:  # Imagen con 3 canales (color)
-        grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        # Si la imagen ya está en escala de grises
-        grayscale_image = image
-    
-    # Calcula el histograma en escala de grises
-    histogram = cv2.calcHist([grayscale_image], [0], None, [256], [0, 256])
-    return histogram.flatten()
-'''
 def calcular_descriptores_fft(image):
     """Calcula la Transformada de Fourier (DFT) para una imagen."""
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -94,22 +83,7 @@ def calcular_descriptores_fft(image):
     f_shift = np.fft.fftshift(f_transform)
     magnitude_spectrum = 20 * np.log(np.abs(f_shift) + 1)  # Escalar el espectro
     return magnitude_spectrum.flatten()
-'''
 
-def calcular_descriptores_fft(image):
-    """Calcula la Transformada de Fourier (DFT) para una imagen."""
-    # Verifica si la imagen ya está en escala de grises
-    if len(image.shape) == 3:  # Imagen con 3 canales (color)
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        # Si la imagen ya está en escala de grises
-        gray_image = image
-
-    # Calcula la transformada de Fourier
-    f_transform = np.fft.fft2(gray_image)
-    f_shift = np.fft.fftshift(f_transform)
-    magnitude_spectrum = 20 * np.log(np.abs(f_shift) + 1)  # Escalar el espectro
-    return magnitude_spectrum.flatten()
 
 def calcular_histograma_color(image):
     """Calcula el histograma de colores de una imagen."""
