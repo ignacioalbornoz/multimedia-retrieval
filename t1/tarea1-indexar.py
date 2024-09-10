@@ -7,6 +7,7 @@ import os
 import util as util
 
 import cv2
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
@@ -26,7 +27,7 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
     # 2-calcular descriptores de imágenes
     # ver codigo de ejemplo publicado en el curso
     print("2-calcular descriptores de imágenes")
-    
+    '''
     descriptores = {}
 
     for imagen_nombre in imagenes:
@@ -38,9 +39,9 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             continue
         
         # Calcular descriptores
-        descriptor_grayscale = util.calcular_descriptores_grayscale(image)
-        descriptor_fft = util.calcular_descriptores_fft(image)
-        descriptor_color = util.calcular_histograma_color(image)
+        descriptor_grayscale = util.calcular_descriptores_grayscale(image).astype(np.float16)
+        descriptor_fft = util.calcular_descriptores_fft(image).astype(np.float16)
+        descriptor_color = util.calcular_histograma_color(image).astype(np.float16)
         
         # Guardar descriptores en un diccionario
         descriptores[imagen_nombre] = {
@@ -48,6 +49,21 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             'fft': descriptor_fft.tolist(),
             'color_histogram': descriptor_color.tolist()
         }
+
+    '''
+    # Usar ThreadPoolExecutor para procesar las imágenes en paralelo
+    batch_size = 10  
+
+    descriptores = {}
+
+    with ProcessPoolExecutor() as executor:
+        # Dividir imágenes en lotes y procesar cada lote en paralelo
+        batches = [imagenes[i:i+batch_size] for i in range(0, len(imagenes), batch_size)]
+        futures = [executor.submit(util.procesar_imagenes_batch, batch, dir_input_imagenes_R) for batch in batches]
+        
+        for future in as_completed(futures):
+            batch_descriptores = future.result()
+            descriptores.update(batch_descriptores)
 
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos
     # puede servir la funcion util.guardar_objeto() que está definida en util.py

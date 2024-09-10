@@ -9,7 +9,6 @@ import pickle
 
 import cv2
 import numpy as np
-import concurrent.futures
 
 
 # Retorna tods los archivos .jpg que estan en una carpeta
@@ -64,84 +63,111 @@ def escribir_lista_de_columnas_en_archivo(lista_con_columnas, archivo_texto_sali
             texto = "\t".join(textos)
             print(texto, file=handle)
 
-def calcular_distancia(descriptor_q, descriptor_r):
-    """Calcula la distancia entre dos descriptores usando la distancia euclidiana."""
-    return np.linalg.norm(descriptor_q - descriptor_r)
+def calcular_distancias_min(descriptor_q, batch_descriptores_r):
+    # Encontrar el índice de la mínima distancia sin almacenar todas las distancias
+    min_distancia = float('inf')
+    min_idx = -1
+    for i in range(batch_descriptores_r.shape[0]):
+        distancia = np.linalg.norm(batch_descriptores_r[i] - descriptor_q)
+        if distancia < min_distancia:
+            min_distancia = distancia
+            min_idx = i
+    return min_distancia, min_idx
 
 
-def calcular_descriptores_grayscale(image):
-    """Calcula descriptores en escala de grises para una imagen dada."""
-    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # Histogram in grayscale
-    histogram = cv2.calcHist([grayscale_image], [0], None, [256], [0, 256])
-    return histogram.flatten()
+def preparar_descriptores(descriptores, tipos_descriptor):
+    print(" Preparando los descriptores...")
+    nombres_imagenes = list(descriptores.keys())
+    descriptores_arrays = {tipo: [] for tipo in tipos_descriptor}
+    
+    for imagen in nombres_imagenes:
+        for tipo in tipos_descriptor:
+            descriptores_arrays[tipo].append(descriptores[imagen][tipo])
+    
+    # Convertir listas a arrays de NumPy una vez para cada descriptor
+    for tipo in tipos_descriptor:
+        descriptores_arrays[tipo] = np.array(descriptores_arrays[tipo], dtype=np.float32)  # Usa float32 para reducir memoria
+    
+    return nombres_imagenes, descriptores_arrays
+'''
+def preparar_descriptores(descriptores, tipos_descriptor):
+    nombres_imagenes = list(descriptores.keys())
+    descriptores_arrays = {tipo: [] for tipo in tipos_descriptor}
+    
+    for imagen in nombres_imagenes:
+        for tipo in tipos_descriptor:
+            descriptores_arrays[tipo].append(descriptores[imagen][tipo])
+    
+    # Convertir listas a arrays de NumPy una vez para cada descriptor
+    for tipo in tipos_descriptor:
+        descriptores_arrays[tipo] = np.array(descriptores_arrays[tipo], dtype=np.float32)  # Usa float32 para reducir memoria
+    
+    return nombres_imagenes, descriptores_arrays
 
-def calcular_descriptores_fft(image):
-    """Calcula la Transformada de Fourier (DFT) para una imagen."""
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    f_transform = np.fft.fft2(gray_image)
-    f_shift = np.fft.fftshift(f_transform)
-    magnitude_spectrum = 20 * np.log(np.abs(f_shift) + 1)  # Escalar el espectro
-    return magnitude_spectrum.flatten()
+def calcular_distancias_batch(descriptor_q, batch_descriptores_r):
+    # Calcula la distancia para todo el lote de una sola vez
+    distancias = np.linalg.norm(batch_descriptores_r - descriptor_q, axis=1)
+    return distancias
+'''
+
+def calcular_descriptores_grayscale(images):
+    """Calcula descriptores en escala de grises para un lote de imágenes."""
+    # Convertir todas las imágenes a escala de grises en un solo paso
+    grayscale_images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
+    
+    # Calcular el histograma de todas las imágenes en un solo paso
+    histograms = [cv2.calcHist([grayscale_image], [0], None, [256], [0, 256]).flatten() for grayscale_image in grayscale_images]
+    
+    return np.array(histograms)
 
 
-def calcular_histograma_color(image):
-    """Calcula el histograma de colores de una imagen."""
-    hist = cv2.calcHist([image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
-    hist = cv2.normalize(hist, hist).flatten()
-    return hist
-
-def calcular_distancia_lote(descriptor_q, descriptores_r):
-    """
-    Calcula la distancia euclidiana entre un descriptor q y todos los descriptores r de una sola vez.
-    :param descriptor_q: Descriptor de la imagen q (vector)
-    :param descriptores_r: Matriz de descriptores de todas las imágenes r
-    :return: Vector de distancias
-    """
-    # Vectoriza el cálculo de la distancia entre un descriptor q y todos los descriptores r
-    return np.linalg.norm(descriptores_r - descriptor_q, axis=1)
+def calcular_descriptores_fft(images):
+    """Calcula la Transformada de Fourier (DFT) para un lote de imágenes."""
+    # Convertir todas las imágenes a escala de grises en un solo paso
+    gray_images = [cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in images]
+    
+    # Calcular la FFT de todas las imágenes y devolver la magnitud del espectro
+    magnitude_spectrums = [20 * np.log(np.abs(np.fft.fftshift(np.fft.fft2(gray_image))) + 1).flatten() for gray_image in gray_images]
+    
+    return np.array(magnitude_spectrums)
 
 
-def procesar_imagen(image_path):
-    """Función que calcula los descriptores de una imagen."""
-    # Cargar la imagen en color y en escala de grises
-    image_color = cv2.imread(image_path)
-    image_grayscale = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+def calcular_histograma_color(images):
+    """Calcula el histograma de colores de un lote de imágenes."""
+    histograms = [cv2.calcHist([image], [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256]).flatten() for image in images]
+    
+    # Normalización
+    histograms = [cv2.normalize(hist, hist).flatten() for hist in histograms]
+    
+    return np.array(histograms)
 
-    if image_color is None or image_grayscale is None:
-        print(f"ERROR: no se pudo leer la imagen {os.path.basename(image_path)}")
-        return os.path.basename(image_path), None
-    '''
-    # Redimensionar la imagen para acelerar el procesamiento 
-    image_color = cv2.resize(image_color, (256, 256))
-    image_grayscale = cv2.resize(image_grayscale, (256, 256))
-    '''
-    # Calcular descriptores
-    descriptor_grayscale = calcular_descriptores_grayscale(image_grayscale)
-    descriptor_fft = calcular_descriptores_fft(image_grayscale)  # Grayscale para FFT
-    descriptor_color = calcular_histograma_color(image_color)
 
-    # Retornar los descriptores
-    return os.path.basename(image_path), {
-        'grayscale': descriptor_grayscale.tolist(),
-        'fft': descriptor_fft.tolist(),
-        'color_histogram': descriptor_color.tolist()
+
+def procesar_imagenes_batch(imagenes, dir_input_imagenes_R, target_size=(256, 256)):
+    image_paths = [os.path.join(dir_input_imagenes_R, imagen_nombre) for imagen_nombre in imagenes]
+    images = [cv2.imread(image_path) for image_path in image_paths]
+    
+    # Filtrar imágenes que no se hayan podido leer
+    valid_images = [(image, imagen_nombre) for image, imagen_nombre in zip(images, imagenes) if image is not None]
+    images, imagenes_validas = zip(*valid_images)
+    
+    # Redimensionar todas las imágenes a un tamaño común (256x256 o el que prefieras)
+    resized_images = [cv2.resize(image, target_size) for image in images]
+    
+    # Calcular descriptores en batch
+    grayscale_descriptors = calcular_descriptores_grayscale(resized_images)
+    fft_descriptors = calcular_descriptores_fft(resized_images)
+    color_histograms = calcular_histograma_color(resized_images)
+    
+    # Crear diccionario de resultados
+    descriptores = {
+        imagen_nombre: {
+            'grayscale': grayscale.tolist(),
+            'fft': fft.tolist(),
+            'color': color_hist.tolist()
+        }
+        for imagen_nombre, grayscale, fft, color_hist in zip(imagenes_validas, grayscale_descriptors, fft_descriptors, color_histograms)
     }
-
-
-def procesar_imagenes_en_paralelo(imagenes, dir_input_imagenes_R):
-    """Función para procesar imágenes en paralelo usando ThreadPoolExecutor."""
-    descriptores = {}
-
-    # Usa un ThreadPoolExecutor para procesamiento paralelo
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Mapea cada imagen a su proceso de cálculo
-        futures = {executor.submit(procesar_imagen, os.path.join(dir_input_imagenes_R, img)): img for img in imagenes}
-
-        # Recoge los resultados a medida que se completan
-        for future in concurrent.futures.as_completed(futures):
-            imagen_nombre, descriptores_data = future.result()
-            if descriptores_data:
-                descriptores[imagen_nombre] = descriptores_data
-
+    
     return descriptores
+
