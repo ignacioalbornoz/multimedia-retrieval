@@ -69,16 +69,7 @@ def calcular_descriptores_grayscale(image):
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Histogram in grayscale
     histogram = cv2.calcHist([grayscale_image], [0], None, [256], [0, 256])
-    return histogram.flatten()
-
-
-def calcular_descriptores_fft(image):
-    """Calcula la Transformada de Fourier (DFT) para una imagen."""
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    f_transform = np.fft.fft2(gray_image)
-    f_shift = np.fft.fftshift(f_transform)
-    magnitude_spectrum = 20 * np.log(np.abs(f_shift) + 1)  # Escalar el espectro
-    return magnitude_spectrum.flatten()
+    return histogram.flatten(), grayscale_image
 
 
 def calcular_histograma_color(image):
@@ -87,6 +78,62 @@ def calcular_histograma_color(image):
     hist = cv2.normalize(hist, hist).flatten()
     return hist
 
+def calcular_descriptor_bordes(grayscale_image):
+    """Calcula el descriptor basado en los bordes de la imagen."""
+    #grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Detecta bordes utilizando el algoritmo de Canny
+    edges = cv2.Canny(grayscale_image, 100, 200)
+    # Calcula el histograma de los bordes
+    hist = cv2.calcHist([edges], [0], None, [64], [0, 256])
+    hist = cv2.normalize(hist, hist).flatten()
+    return hist
+
+
 def calcular_distancia(descriptor_q, descriptor_r):
     """Calcula la distancia entre dos descriptores usando la distancia euclidiana."""
     return np.linalg.norm(descriptor_q - descriptor_r)
+
+
+
+'''
+
+def calcular_descriptores_grayscale(image, zonas=(4, 4), bins=64):
+    """Calcula descriptores en escala de grises por zonas de la imagen."""
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    h, w = grayscale_image.shape
+    h_zona, w_zona = h // zonas[0], w // zonas[1]
+    
+    descriptores = []
+    
+    for i in range(zonas[0]):
+        for j in range(zonas[1]):
+            # Extrae la zona de la imagen
+            zona = grayscale_image[i * h_zona:(i + 1) * h_zona, j * w_zona:(j + 1) * w_zona]
+            # Calcula el histograma de la zona con 64 bins
+            hist = cv2.calcHist([zona], [0], None, [bins], [0, 256])
+            hist = cv2.normalize(hist, hist).flatten()
+            descriptores.append(hist)
+    
+    # Retorna los descriptores concatenados en un vector
+    return np.concatenate(descriptores)
+
+def calcular_histograma_color(image, zonas=(4, 4), bins=64):
+    """Calcula el histograma de colores por zonas de la imagen."""
+    h, w, _ = image.shape
+    h_zona, w_zona = h // zonas[0], w // zonas[1]
+    
+    descriptores = []
+    
+    for i in range(zonas[0]):
+        for j in range(zonas[1]):
+            # Extrae la zona de la imagen
+            zona = image[i * h_zona:(i + 1) * h_zona, j * w_zona:(j + 1) * w_zona]
+            # Calcula el histograma de color para la zona con 64 bins por canal
+            hist = cv2.calcHist([zona], [0, 1, 2], None, [bins, bins, bins], [0, 256, 0, 256, 0, 256])
+            hist = cv2.normalize(hist, hist).flatten()
+            descriptores.append(hist)
+    
+    # Retorna los descriptores concatenados en un vector
+    return np.concatenate(descriptores)
+
+'''

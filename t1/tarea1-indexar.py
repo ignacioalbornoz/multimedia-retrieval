@@ -36,20 +36,20 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             continue
         
         # Calcular descriptores
-        descriptor_grayscale = util.calcular_descriptores_grayscale(image)
-        descriptor_fft = util.calcular_descriptores_fft(image)
+        descriptor_grayscale, grayscale_image = util.calcular_descriptores_grayscale(image)
+        descriptor_bordes = util.calcular_descriptor_bordes(grayscale_image)
         descriptor_color = util.calcular_histograma_color(image)
         
         # Guardar descriptores en un diccionario
         descriptores[imagen_nombre] = {
             'grayscale': descriptor_grayscale.tolist(),
-            'fft': descriptor_fft.tolist(),
-            'color_histogram': descriptor_color.tolist()
+            'bordes': descriptor_bordes.tolist(),
+            'color': descriptor_color.tolist()
         }
 
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos
     # puede servir la funcion util.guardar_objeto() que está definida en util.py
-    util.guardar_objeto(descriptores, os.path.join(dir_output_descriptores_R, 'descriptores.pkl'))
+    util.guardar_objeto(descriptores, dir_output_descriptores_R, 'descriptores.pkl')
     print(f"Descriptores guardados en {dir_output_descriptores_R}")
 
 
