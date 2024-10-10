@@ -9,6 +9,8 @@ import itertools
 import numpy as np
 import cv2
 from tqdm import tqdm
+
+
 def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_resultados):
     if not os.path.isdir(dir_input_imagenes_Q):
         print("ERROR: no existe directorio {}".format(dir_input_imagenes_Q))
@@ -35,14 +37,24 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
             continue
         
         # Calcula los descriptores de cada imagen
-        descriptor_q_grayscale, grayscale_image = util.calcular_descriptores_grayscale(image)
-        descriptor_q_bordes = util.calcular_descriptor_bordes(grayscale_image)
+        descriptor_q_grayscale, _ = util.calcular_descriptores_grayscale(image)
+        #descriptor_q_bordes = util.calcular_descriptor_bordes(grayscale_image)
+        #descriptor_q_gamma = util.calcular_descriptor_gamma(grayscale_image)
+        descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_orb(image)
         descriptor_q_color = util.calcular_histograma_color(image)
+        descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
+
         
         descriptores_q[imagen_nombre] = {
             'grayscale': descriptor_q_grayscale,
-            'bordes': descriptor_q_bordes,
-            'color': descriptor_q_color
+            #'bordes': descriptor_q_bordes,
+            #'gamma': descriptor_q_gamma,
+            'color': descriptor_q_color,
+            #'original': descriptor_original,
+            'flip_h': descriptor_flip_h,
+            'flip_v': descriptor_flip_v,
+            'flip_both': descriptor_flip_both,
+            'gaussian': descriptor_gaussiano
         }
     # 2-leer descriptores de R guardados en dir_input_descriptores_R
     print("2-leer descriptores de R guardados en dir_input_descriptores_R")
@@ -53,45 +65,36 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
     print("3-para cada descriptor q localizar el más cercano en R con progreso")
     
     resultados = []
-    
-    # Iterar sobre cada imagen Q con tqdm para mostrar el progreso
+
+    descriptores_r_matriz_grayscale = np.array([descriptor_r['grayscale'] for descriptor_r in descriptores_r.values()])
+    descriptores_r_matriz_color = np.array([descriptor_r['color'] for descriptor_r in descriptores_r.values()])
+    descriptores_r_matriz_gaussiano = np.array([descriptor_r['gaussian'] for descriptor_r in descriptores_r.values()])
+
+    imagenes_r = list(descriptores_r.keys())
+
     for imagen_q, descriptor_q in tqdm(descriptores_q.items(), desc="Procesando descriptores de Q"):
-        # Para cada imagen Q inicializamos una distancia mínima infinita
         distancia_minima = float('inf')
         imagen_r_minima = None
-        #combinacion_usada = None
 
-        # Comparar con cada descriptor de R y mostrar el progreso para cada comparación
-        for imagen_r, descriptor_r in tqdm(descriptores_r.items(), desc=f"Comparando {imagen_q} con descriptores de R", leave=False):
-            
-            # Comparar usando cada descriptor individualmente
-            distancias = []
-
-            distancia_grayscale = util.calcular_distancia(descriptor_q['grayscale'], descriptor_r['grayscale'])
-            distancias.append(('grayscale', distancia_grayscale))
-
-            distancia_bordes = util.calcular_distancia(descriptor_q['bordes'], descriptor_r['bordes'])
-            distancias.append(('bordes', distancia_bordes))
-                
-            distancia_color = util.calcular_distancia(descriptor_q['color'], descriptor_r['color'])
-            distancias.append(('color', distancia_color))
-
-            # Comparar usando combinaciones de descriptores (grayscale+fft, grayscale+color, fft+color, grayscale+fft+color)
-            if len(distancias) > 1:
-                for i in range(2, len(distancias)+1):
-                    for combinacion in itertools.combinations(distancias, i):
-                        combinacion_distancia = sum([d[1] for d in combinacion])
-                        combinacion_nombre = '+'.join([d[0] for d in combinacion])
-                        distancias.append((combinacion_nombre, combinacion_distancia))
-
-            # Buscar la distancia mínima entre todas las distancias (individuales y combinadas)
-            for _, distancia in distancias:
-                if distancia < distancia_minima:
-                    distancia_minima = distancia
-                    imagen_r_minima = imagen_r
-                    #combinacion_usada = descriptor_combination
+        # Vectorizar las comparaciones con NumPy para cada descriptor
+        distancias_grayscale = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['grayscale'], axis=1)
+        distancias_color = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['color'], axis=1)
+        distancias_flip_h = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_h'], axis=1)
+        distancias_flip_v = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_v'], axis=1)
+        distancias_flip_both = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_both'], axis=1)
+        distancias_gauss = np.linalg.norm(descriptores_r_matriz_gaussiano - descriptor_q['gaussian'], axis=1)
         
-        # Guardar el resultado (imagen_q, imagen_r_minima, distancia_minima, combinación usada)
+
+        # Buscar la distancia mínima y su índice
+        distancias_totales = np.minimum.reduce([distancias_grayscale, distancias_color, distancias_gauss, distancias_flip_h, distancias_flip_v, distancias_flip_both])
+
+
+
+        indice_minimo = np.argmin(distancias_totales)
+
+        imagen_r_minima = imagenes_r[indice_minimo]
+        distancia_minima = distancias_totales[indice_minimo]
+
         resultados.append([imagen_q, imagen_r_minima, distancia_minima])
 
 

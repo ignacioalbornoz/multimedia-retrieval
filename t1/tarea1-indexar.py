@@ -36,15 +36,18 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             continue
         
         # Calcular descriptores
-        descriptor_grayscale, grayscale_image = util.calcular_descriptores_grayscale(image)
-        descriptor_bordes = util.calcular_descriptor_bordes(grayscale_image)
+        descriptor_grayscale, _ = util.calcular_descriptores_grayscale(image)
+        #descriptor_bordes = util.calcular_descriptor_bordes(grayscale_image)
+        #descriptor_gamma = util.calcular_descriptor_gamma(grayscale_image)
+        #descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_orb(image)
         descriptor_color = util.calcular_histograma_color(image)
+        descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
         
         # Guardar descriptores en un diccionario
         descriptores[imagen_nombre] = {
             'grayscale': descriptor_grayscale.tolist(),
-            'bordes': descriptor_bordes.tolist(),
-            'color': descriptor_color.tolist()
+            'color': descriptor_color.tolist(),
+            'gaussian': descriptor_gaussiano.tolist()
         }
 
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos
