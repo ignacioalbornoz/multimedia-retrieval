@@ -37,24 +37,26 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
             continue
         
         # Calcula los descriptores de cada imagen
-        descriptor_q_grayscale, _ = util.calcular_descriptores_grayscale(image)
-        #descriptor_q_bordes = util.calcular_descriptor_bordes(grayscale_image)
-        #descriptor_q_gamma = util.calcular_descriptor_gamma(grayscale_image)
-        descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_orb(image)
+        descriptor_q_grayscale, grayscale_image = util.calcular_descriptores_grayscale(image)
+        descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_flip(image)
         descriptor_q_color = util.calcular_histograma_color(image)
         descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
-
+        descriptor_hsv = util.calcular_histograma_hsv(image)
+        #descriptor_hog = util.calcular_descriptores_hog(image)
+        #descriptor_hsv_1, descriptor_hsv_2, descriptor_hsv_3 = util.calcular_histograma_hsv_normalizado(image)
         
         descriptores_q[imagen_nombre] = {
             'grayscale': descriptor_q_grayscale,
-            #'bordes': descriptor_q_bordes,
-            #'gamma': descriptor_q_gamma,
             'color': descriptor_q_color,
-            #'original': descriptor_original,
             'flip_h': descriptor_flip_h,
             'flip_v': descriptor_flip_v,
             'flip_both': descriptor_flip_both,
-            'gaussian': descriptor_gaussiano
+            'gaussian': descriptor_gaussiano,
+            'hsv': descriptor_hsv,
+            #'hog': descriptor_hog,
+            #'hsv_1': descriptor_hsv_1.tolist(),
+            #'hsv_2': descriptor_hsv_2.tolist(),
+            #'hsv_3': descriptor_hsv_3.tolist()
         }
     # 2-leer descriptores de R guardados en dir_input_descriptores_R
     print("2-leer descriptores de R guardados en dir_input_descriptores_R")
@@ -69,25 +71,32 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
     descriptores_r_matriz_grayscale = np.array([descriptor_r['grayscale'] for descriptor_r in descriptores_r.values()])
     descriptores_r_matriz_color = np.array([descriptor_r['color'] for descriptor_r in descriptores_r.values()])
     descriptores_r_matriz_gaussiano = np.array([descriptor_r['gaussian'] for descriptor_r in descriptores_r.values()])
-
+    descriptors_r_matriz_hsv = np.array([descriptor_r['hsv'] for descriptor_r in descriptores_r.values()])
+    #descriptores_r_matriz_hog= np.array([descriptor_r['hog'] for descriptor_r in descriptores_r.values()])
+    #descriptores_r_matriz_hsv_1= np.array([descriptor_r['hsv_1'] for descriptor_r in descriptores_r.values()])
+    #descriptores_r_matriz_hsv_2= np.array([descriptor_r['hsv_2'] for descriptor_r in descriptores_r.values()])
+    #descriptores_r_matriz_hsv_3= np.array([descriptor_r['hsv_3'] for descriptor_r in descriptores_r.values()])
     imagenes_r = list(descriptores_r.keys())
 
     for imagen_q, descriptor_q in tqdm(descriptores_q.items(), desc="Procesando descriptores de Q"):
         distancia_minima = float('inf')
         imagen_r_minima = None
 
-        # Vectorizar las comparaciones con NumPy para cada descriptor
+        #umbral_hog = 0.3
+        #umbral_hog = np.inf
         distancias_grayscale = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['grayscale'], axis=1)
         distancias_color = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['color'], axis=1)
         distancias_flip_h = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_h'], axis=1)
         distancias_flip_v = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_v'], axis=1)
         distancias_flip_both = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['flip_both'], axis=1)
         distancias_gauss = np.linalg.norm(descriptores_r_matriz_gaussiano - descriptor_q['gaussian'], axis=1)
-        
+        distancias_hog = np.linalg.norm(descriptors_r_matriz_hsv - descriptor_q['hsv'], axis=1)
+
+        # Aplicar umbral a distancias HOG
+        #distancias_hog_ajustada = np.where(distancias_hog < umbral_hog, distancias_hog, np.inf)
 
         # Buscar la distancia mínima y su índice
-        distancias_totales = np.minimum.reduce([distancias_grayscale, distancias_color, distancias_gauss, distancias_flip_h, distancias_flip_v, distancias_flip_both])
-
+        distancias_totales = np.minimum.reduce([distancias_hog, distancias_grayscale, distancias_color, distancias_gauss, distancias_flip_h, distancias_flip_v, distancias_flip_both])
 
 
         indice_minimo = np.argmin(distancias_totales)

@@ -37,17 +37,21 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
         
         # Calcular descriptores
         descriptor_grayscale, _ = util.calcular_descriptores_grayscale(image)
-        #descriptor_bordes = util.calcular_descriptor_bordes(grayscale_image)
-        #descriptor_gamma = util.calcular_descriptor_gamma(grayscale_image)
-        #descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_orb(image)
         descriptor_color = util.calcular_histograma_color(image)
         descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
-        
+        #descriptor_hog = util.calcular_descriptores_hog(image)
+        descriptor_hsv = util.calcular_histograma_hsv(image)
+        #descriptor_hsv_1, descriptor_hsv_2, descriptor_hsv_3 = util.calcular_histograma_hsv_normalizado(image)
         # Guardar descriptores en un diccionario
         descriptores[imagen_nombre] = {
             'grayscale': descriptor_grayscale.tolist(),
             'color': descriptor_color.tolist(),
-            'gaussian': descriptor_gaussiano.tolist()
+            'gaussian': descriptor_gaussiano.tolist(),
+            #'hog': descriptor_hog.tolist(),
+            'hsv': descriptor_hsv.tolist()
+            #'hsv_1': descriptor_hsv_1.tolist(),
+            #'hsv_2': descriptor_hsv_2.tolist(),
+            #'hsv_3': descriptor_hsv_3.tolist()
         }
 
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos

@@ -62,7 +62,6 @@ def escribir_lista_de_columnas_en_archivo(lista_con_columnas, archivo_texto_sali
                 textos.append(str(col))
             texto = "\t".join(textos)
             print(texto, file=handle)
-            
 
 def dividir_en_zonas(image, num_zonas=4):
     """Divide una imagen en zonas de num_zonas x num_zonas."""
@@ -106,7 +105,7 @@ def calcular_histograma_color(image):
 
 
 
-def calcular_descriptores_orb(image):
+def calcular_descriptores_flip(image):
     """Calcula descriptores por zonas para las versiones reflejadas horizontal, vertical y ambas direcciones."""
     
     # Flip horizontal
@@ -164,3 +163,199 @@ def calcular_descriptor_gaussiano(image):
     
     return np.array(descriptores)
 
+
+
+from skimage.feature import hog
+
+def calcular_histograma_hsv(image, num_zonas=4, size=(128, 128)):
+    """Calcula el descriptor HOG por zonas, dividiendo la imagen en num_zonas x num_zonas zonas."""
+
+    # Redimensionar la imagen a un tamaño estándar
+    resized_image = cv2.resize(image, size)
+    
+    # Convertir a escala de grises
+    gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+    
+    # Dividir en zonas
+    zonas = dividir_en_zonas(gray_image, num_zonas=num_zonas)
+    descriptores = []
+    
+    # Calcular HOG por cada zona
+    for zona in zonas:
+        hog_descriptor = hog(zona, orientations=6, pixels_per_cell=(8, 8),
+                             cells_per_block=(2, 2), block_norm='L2-Hys', transform_sqrt=True)
+        hog_descriptor = np.array(hog_descriptor, dtype=np.float32)
+        descriptores.extend(hog_descriptor)
+    
+    return np.array(descriptores)
+
+
+'''
+
+from skimage.feature import hog
+def calcular_histograma_hsv(image, size=(128, 128)):
+    """Calcula el descriptor HOG para la imagen completa con optimización, redimensionando a un tamaño estándar."""
+    # Redimensionar la imagen a un tamaño estándar
+    resized_image = cv2.resize(image, size)
+    
+    # Convertir a escala de grises
+    gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+    
+    # Calcular HOG con bloques más grandes para reducir el número de cálculos
+    hog_descriptor = hog(gray_image, orientations=6, pixels_per_cell=(16, 16),
+                         cells_per_block=(4, 4), block_norm='L2-Hys', transform_sqrt=True)
+    
+    # Convertir a formato float32 para normalización
+    hog_descriptor = np.array(hog_descriptor, dtype=np.float32)
+    
+    # Normalizar el descriptor
+    hog_descriptor = cv2.normalize(hog_descriptor, hog_descriptor).flatten()
+
+    return np.array(hog_descriptor, dtype=np.float32)
+
+'''
+
+
+
+
+
+'''
+
+def calcular_histograma_hsv(image):
+    """Calcula el descriptor HOG para la imagen completa."""
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Calcular HOG para la imagen completa
+    hog_descriptor = hog(gray_image, orientations=9, pixels_per_cell=(8, 8),
+                         cells_per_block=(2, 2), block_norm='L2-Hys', transform_sqrt=True)
+    
+    # Convertir a formato float32 para normalización
+    hog_descriptor = np.array(hog_descriptor, dtype=np.float32)
+    
+    # Normalizar el descriptor
+    hog_descriptor = cv2.normalize(hog_descriptor, hog_descriptor).flatten()
+
+    return hog_descriptor
+
+
+def calcular_histograma_hsv(image):
+    """Calcula el descriptor HOG para cada zona de una imagen."""
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    zonas = dividir_en_zonas(gray_image)
+    descriptores = []
+
+    for zona in zonas:
+        # Calcular HOG para cada zona
+        hog_descriptor = hog(zona, orientations=9, pixels_per_cell=(8, 8),
+                             cells_per_block=(2, 2), block_norm='L2-Hys', transform_sqrt=True)
+        
+        # Convertir a formato float32 para normalización
+        hog_descriptor = np.array(hog_descriptor, dtype=np.float32)
+        
+        # Normalizar el descriptor
+        hog_descriptor = cv2.normalize(hog_descriptor, hog_descriptor).flatten()
+        
+        descriptores.extend(hog_descriptor)
+
+    return np.array(descriptores)
+
+
+def calcular_descriptores_hog(image):
+    """Calcula descriptores HOG en la parte de la imagen sin texto añadido."""
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Crear el descriptor HOG
+    hog = cv2.HOGDescriptor()
+    hog_descriptor = hog.compute(grayscale_image)
+    
+    return np.array(hog_descriptor.flatten())
+
+
+def calcular_descriptores_hog(image, num_zonas=4):
+    """Calcula y normaliza descriptores HOG por zonas."""
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    zonas = dividir_en_zonas(grayscale_image, num_zonas)
+    descriptores = []
+    
+    # Crear el descriptor HOG
+    hog = cv2.HOGDescriptor(
+        _winSize=(64, 64),  # Ajusta este tamaño según tu imagen
+        _blockSize=(16, 16),
+        _blockStride=(8, 8),
+        _cellSize=(8, 8),
+        _nbins=9
+    )
+    
+    for zona in zonas:
+        # Asegurar que la zona tenga el tamaño correcto para HOG
+        resized_zona = cv2.resize(zona, (64, 64))
+        
+        # Calcular el descriptor HOG
+        hog_descriptor = hog.compute(resized_zona)
+        descriptores.extend(hog_descriptor.flatten())
+    
+    return np.array(descriptores)
+
+
+'''
+
+
+
+
+
+
+
+
+
+'''
+
+
+from skimage.feature import local_binary_pattern
+
+def calcular_lbp(image, radius=1, n_points=8):
+    """Calcula el descriptor LBP (Local Binary Patterns) para cada zona de una imagen."""
+    # Convertir la imagen a escala de grises
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Dividir la imagen en zonas
+    zonas = dividir_en_zonas(gray_image)
+    descriptores = []
+
+    # Calcular LBP para cada zona
+    for zona in zonas:
+        lbp = local_binary_pattern(zona, n_points, radius, method='uniform')
+        hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, n_points + 3), range=(0, n_points + 2))
+        
+        # Normalizar el histograma
+        hist = hist.astype("float")
+        hist /= (hist.sum() + 1e-7)  # Añadir epsilon para evitar división por cero
+        descriptores.extend(hist)
+
+    return np.array(descriptores)
+
+    
+from skimage.feature import local_binary_pattern
+
+def calcular_histograma_lbp(image, radius=1, n_points=8):
+    """Calcula el descriptor LBP (Local Binary Patterns) para cada zona de una imagen."""
+    # Convertir la imagen a escala de grises
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Dividir la imagen en zonas
+    zonas = dividir_en_zonas(gray_image)
+    descriptores = []
+
+    # Calcular LBP para cada zona
+    for zona in zonas:
+        lbp = local_binary_pattern(zona, n_points, radius, method='uniform')
+        hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, n_points + 3), range=(0, n_points + 2))
+        
+        # Convertir el histograma a float32 para usar cv2.normalize
+        hist = hist.astype(np.float32)
+        
+        # Normalizar el histograma utilizando cv2.normalize
+        hist = cv2.normalize(hist, hist).flatten()
+        descriptores.extend(hist)
+
+    return np.array(descriptores)
+'''
