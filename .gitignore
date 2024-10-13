@@ -167,3 +167,6 @@ datasets/
 t2/evaluacion_tarea2/*
 
 t2/datasets/*
+
+t1/evaluacion_t1/datos_dataset_a_r/descriptores.pkl
+t1/evaluacion_t1/datos_dataset_a_r/*.pkl
