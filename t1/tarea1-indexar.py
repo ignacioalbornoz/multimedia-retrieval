@@ -7,7 +7,6 @@ import os
 import util as util
 
 import cv2
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
@@ -21,13 +20,11 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
     
     # 1-leer imágenes en dir_input_imagenes
     # puede servir la funcion util.listar_archivos_en_carpeta() que está definida en util.py
-    print("1-leer imágenes en dir_input_imagenes")
     imagenes = util.listar_archivos_en_carpeta(dir_input_imagenes_R)
 
     # 2-calcular descriptores de imágenes
     # ver codigo de ejemplo publicado en el curso
-    print("2-calcular descriptores de imágenes")
-    '''
+    
     descriptores = {}
 
     for imagen_nombre in imagenes:
@@ -39,37 +36,30 @@ def tarea1_indexar(dir_input_imagenes_R, dir_output_descriptores_R):
             continue
         
         # Calcular descriptores
-        descriptor_grayscale = util.calcular_descriptores_grayscale(image).astype(np.float16)
-        descriptor_fft = util.calcular_descriptores_fft(image).astype(np.float16)
-        descriptor_color = util.calcular_histograma_color(image).astype(np.float16)
-        
+        descriptor_grayscale, _ = util.calcular_descriptores_grayscale(image)
+        descriptor_color = util.calcular_histograma_color(image)
+        descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
+        #descriptor_hog = util.calcular_descriptores_hog(image)
+        descriptor_hsv = util.calcular_histograma_hsv(image)
+        #descriptor_hsv_1, descriptor_hsv_2, descriptor_hsv_3 = util.calcular_histograma_hsv_normalizado(image)
         # Guardar descriptores en un diccionario
         descriptores[imagen_nombre] = {
             'grayscale': descriptor_grayscale.tolist(),
-            'fft': descriptor_fft.tolist(),
-            'color_histogram': descriptor_color.tolist()
+            'color': descriptor_color.tolist(),
+            'gaussian': descriptor_gaussiano.tolist(),
+            #'hog': descriptor_hog.tolist(),
+            'hsv': descriptor_hsv.tolist()
+            #'hsv_1': descriptor_hsv_1.tolist(),
+            #'hsv_2': descriptor_hsv_2.tolist(),
+            #'hsv_3': descriptor_hsv_3.tolist()
         }
-
-    '''
-    # Usar ThreadPoolExecutor para procesar las imágenes en paralelo
-    batch_size = 10  
-
-    descriptores = {}
-
-    with ProcessPoolExecutor() as executor:
-        # Dividir imágenes en lotes y procesar cada lote en paralelo
-        batches = [imagenes[i:i+batch_size] for i in range(0, len(imagenes), batch_size)]
-        futures = [executor.submit(util.procesar_imagenes_batch, batch, dir_input_imagenes_R) for batch in batches]
-        
-        for future in as_completed(futures):
-            batch_descriptores = future.result()
-            descriptores.update(batch_descriptores)
 
     # 3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos
     # puede servir la funcion util.guardar_objeto() que está definida en util.py
-    print("3-escribir en dir_output_descriptores_R los descriptores calculados en uno o más archivos")
     util.guardar_objeto(descriptores, dir_output_descriptores_R, 'descriptores.pkl')
     print(f"Descriptores guardados en {dir_output_descriptores_R}")
+
+
 
 # inicio de la tarea
 if len(sys.argv) < 3:
