@@ -5,6 +5,9 @@
 import sys
 import os
 import util as util
+import librosa
+
+
 
 
 def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
@@ -14,7 +17,10 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
     elif os.path.exists(archivo_detecciones):
         print("ERROR: ya existe archivo {}".format(archivo_detecciones))
         sys.exit(1)
-    #
+    sample_rate = 22050
+    n_mfcc = 20 
+    n_fft = 2048
+    hop_length = 512
     # Implementar la tarea con los siguientes pasos:
     #
     #  1-leer el archivo archivo_ventanas_similares (fue creado por tarea2_busqueda)
@@ -22,8 +28,8 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
     ventanas_similares = []
     with open(archivo_ventanas_similares, 'r') as f:
         for line in f:
-            q_file, q_start_time, r_file, r_start_time, distancia = line.strip().split("\t")
-            ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia)])
+            q_file, q_start_time, r_file, r_start_time, distancia, total_duracion_r = line.strip().split("\t")
+            ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia), float(total_duracion_r)])
 
     #  2-crear un algoritmo para buscar secuencias similares entre audios
     #    ver slides de la semana 5 y 7
@@ -31,7 +37,11 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
     detecciones = []
     confianza = 0
     for i in range(len(ventanas_similares)):
-        q_file, q_start_time, r_file, r_start_time, distancia = ventanas_similares[i]
+        
+
+        q_file, q_start_time, r_file, r_start_time, distancia, total_duracion_r = ventanas_similares[i]
+        # Duración total del archivo R 
+        total_ventanas_r = total_duracion_r / (512 / 22050)  # Ventanas en R (basado en hop_length = 512 y sample_rate = 22050)
         
         # Initialize or reset detection sequence
         if i == 0 or q_file != ventanas_similares[i-1][0] or r_file != ventanas_similares[i-1][2]:
@@ -46,6 +56,7 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
         if q_start_time - r_start_time == desfase:
             confianza += 1  # Increase confidence as more windows align
         else:
+            confianza_normalizada = confianza / total_ventanas_r
             # Add completed detection sequence to the results
             q_file = q_file.replace('_mfcc.pkl', '.m4a')
             r_file = r_file.replace('_mfcc.pkl', '.m4a')
@@ -54,7 +65,7 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                 inicio_tiempo_q,  # Start time of detection in Q
                 q_start_time - inicio_tiempo_q,  # Duration of detection in seconds
                 r_file,
-                confianza  # Confidence level
+                confianza_normalizada  # Confidence level
             ])
             # Reset for the next sequence
             q_start = q_start_time
@@ -65,6 +76,7 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
 
     # Add the last detection if applicable
     if confianza > 0:
+        confianza_normalizada = confianza / total_ventanas_r
         q_file = q_file.replace('_mfcc.pkl', '.m4a')
         r_file = r_file.replace('_mfcc.pkl', '.m4a')
         detecciones.append([
@@ -72,7 +84,7 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
             inicio_tiempo_q,
             q_start_time - inicio_tiempo_q,  # Duration of detection
             r_file,
-            confianza
+            confianza_normalizada
         ])
     #  3-escribir las detecciones encontradas en archivo_detecciones, en un archivo con 5 columnas:
     #    columna 1: nombre de archivo Q (nombre de archivo en carpeta radio)

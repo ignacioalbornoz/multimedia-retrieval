@@ -26,7 +26,7 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
     #    puede servir la funcion util.convertir_a_wav() que está definida en util.py
 
     sample_rate = 22050
-    n_mfcc = 20  # Reduced to basic MFCCs to focus on the simplest detections
+    n_mfcc = 20 
     n_fft = 2048
     hop_length = 512
     for archivo_m4a in archivos_m4a:
@@ -42,8 +42,20 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         # Compute MFCCs (no delta or chroma, as we're targeting simple cases)
         mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
         
+        # Apply z-score normalization to MFCCs
+        mfccs = (mfccs - np.mean(mfccs, axis=1, keepdims=True)) / np.std(mfccs, axis=1, keepdims=True)
+        
+        # Compute Chroma feature
+        chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
+        
+        #spectral_centroid = librosa.feature.spectral_centroid(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
+        #spectral_bandwidth = librosa.feature.spectral_bandwidth(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
+        #spectral_contrast = librosa.feature.spectral_contrast(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
+
+        # Concatenate spectral features with MFCC and Chroma
+        combined_features = np.concatenate((mfccs, chroma), axis=0)
         # Transpose to match the format of descriptors (rows for each window)
-        descriptores_mfcc = mfccs.T
+        descriptores_mfcc = combined_features.T
         
         
     #  4-escribir en carpeta_descriptores_salida los descriptores de cada archivo
