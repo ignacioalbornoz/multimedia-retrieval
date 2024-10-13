@@ -164,3 +164,6 @@ t1/datasets/
 
 
 datasets/
+t2/evaluacion_tarea2/*
+
+t2/datasets/*
