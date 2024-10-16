@@ -43,26 +43,26 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
         
         # Apply z-score normalization to MFCCs
-        #mfccs = (mfccs - np.mean(mfccs, axis=1, keepdims=True)) / np.std(mfccs, axis=1, keepdims=True)
+        mfccs = (mfccs - np.mean(mfccs, axis=1, keepdims=True)) / np.std(mfccs, axis=1, keepdims=True)
         
         # Compute Chroma feature
-        #chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
+        chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         
         #spectral_centroid = librosa.feature.spectral_centroid(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         #spectral_bandwidth = librosa.feature.spectral_bandwidth(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         #spectral_contrast = librosa.feature.spectral_contrast(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
 
         # Concatenate spectral features with MFCC and Chroma
-        #combined_features = np.concatenate((mfccs, chroma), axis=0)
+        combined_features = np.concatenate((mfccs, chroma), axis=0)
         # Transpose to match the format of descriptors (rows for each window)
-        descriptores_mfcc = mfccs.T
+        #descriptores_mfcc = mfccs.T
+        combined_features = combined_features.T
         
-        
-    #  4-escribir en carpeta_descriptores_salida los descriptores de cada archivo
-    #    puede servir la funcion util.guardar_objeto() que está definida en util.py
+        #  4-escribir en carpeta_descriptores_salida los descriptores de cada archivo
+        #    puede servir la funcion util.guardar_objeto() que está definida en util.py
     
         nombre_salida = archivo_m4a.replace('.m4a', '_mfcc.pkl')
-        util.guardar_objeto(descriptores_mfcc, carpeta_descriptores_salida, nombre_salida)
+        util.guardar_objeto(combined_features, carpeta_descriptores_salida, nombre_salida)
 
 
 
