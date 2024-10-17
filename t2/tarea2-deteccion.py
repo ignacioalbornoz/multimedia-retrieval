@@ -61,12 +61,13 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                 # candidato[4] = last_r_start_time
                 # candidato[5] = last_q_start_time
                 # candidato[6] = last_q_end_time
+                # candidato[7] = min_distancia
                 #
                 #
                 #
                 #
-                #
-                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time]
+
+                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time, distancia]
                 candidatos.append(nuevo_candidato)
         
             else:
@@ -90,13 +91,14 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                             candidato[2]=0
                             candidato[4]=r_start_time
                             candidato[6] = q_start_time
-                        else:
-                            candidato[1]+=1                     
-                            candidato[2]=0
-                            candidato[4]=r_start_time
-                            candidato[6] = q_start_time
-
-
+                        elif (r_start_time < last_r_start_time):
+                            if distancia < candidato[7]:
+                                candidatos.remove(candidato)
+                                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time, distancia]
+                                candidatos.append(nuevo_candidato)
+                                
+                            else:
+                                candidato[2]+=1
 
                     else:
                         candidato[2]+=1
@@ -106,18 +108,20 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                         #candidatos.remove(candidato)
                         q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
                         candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
+                        confianza = candidato[1]/candidato[3] 
                         if candidato[6] - candidato[5] > 0:
                             detecciones.append([
                                 q_file_to_save,
                                 candidato[5],  # Start time of detection in Q
                                 candidato[6] - candidato[5],  # Duration of detection in seconds
                                 candidato[0],
-                                candidato[1]/candidato[3]  # Confidence level
+                                confianza  # Confidence level
                             ])
                         candidatos.remove(candidato)   
                 
                 if all(r_file != candidato[0] for candidato in candidatos):
-                    nuevo_candidato = [r_file, 1, 0, total_ventanas_r, last_r_start_time, q_start_time, q_start_time]
+
+                    nuevo_candidato = [r_file, 1, 0, total_ventanas_r, last_r_start_time, q_start_time, q_start_time, distancia]
                     candidatos.append(nuevo_candidato)
 
                 #for ex_candidato in ex_candidatos:
@@ -125,13 +129,14 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
         for candidato in candidatos:
             q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
             candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
-            if candidato[6] - candidato[5] > 0:
+            confianza = candidato[1]/candidato[3]
+            if (candidato[6] - candidato[5] > 0):
                 detecciones.append([
                     q_file_to_save,
                     candidato[5],  # Start time of detection in Q
                     candidato[6] - candidato[5],  # Duration of detection in seconds
                     candidato[0],
-                    candidato[1]/candidato[3]  # Confidence level
+                    confianza  # Confidence level
                 ])
             candidatos.remove(candidato)   
 

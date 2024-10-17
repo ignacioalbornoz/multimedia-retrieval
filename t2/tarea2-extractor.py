@@ -26,7 +26,7 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
     #    puede servir la funcion util.convertir_a_wav() que está definida en util.py
 
     sample_rate = 22050
-    n_mfcc = 20 
+    n_mfcc = 30
     n_fft = 22050
     hop_length = 22050
     for archivo_m4a in archivos_m4a:
@@ -48,7 +48,7 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         chroma = (chroma - np.mean(chroma, axis=1, keepdims=True)) / np.std(chroma, axis=1, keepdims=True)
 
-
+        #mfccs = mfccs.T
         # Concatenate spectral features with MFCC and Chroma
         combined_features = np.concatenate((mfccs, chroma), axis=0)
         combined_features = combined_features.T

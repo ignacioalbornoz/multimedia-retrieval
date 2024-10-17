@@ -83,11 +83,11 @@ def tarea2_busqueda(carpeta_descriptores_radio_Q, carpeta_descritores_canciones_
                 # Append the result to the list of similar windows
                 resultados_similares.append([
                     archivos_Q[i], 
-                    f"{start_time_Q:.2f}",  # Q file and start time
+                    f"{start_time_Q}",  # Q file and start time
                     archivos_R[archivo_R_idx], 
-                    f"{start_time_R:.2f}",  # R file and start time
-                    f"{minimas_distancias[j]:.4f}", # Distance between the windows
-                    f"{duracion_R_en_ventanas:.2f}"  # Duración del archivo R
+                    f"{start_time_R}",  # R file and start time
+                    f"{minimas_distancias[j]}", # Distance between the windows
+                    f"{duracion_R_en_ventanas}"  # Duración del archivo R
                 ])
     #  3-escribir en el archivo archivo_ventanas_similares una estructura que asocie
     #     cada ventana de Q con su ventana más parecida en R
