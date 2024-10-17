@@ -47,7 +47,8 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         
         # Compute Chroma feature
         chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
-        
+        chroma = (chroma - np.mean(chroma, axis=1, keepdims=True)) / np.std(chroma, axis=1, keepdims=True)
+
         #spectral_centroid = librosa.feature.spectral_centroid(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         #spectral_bandwidth = librosa.feature.spectral_bandwidth(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         #spectral_contrast = librosa.feature.spectral_contrast(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
