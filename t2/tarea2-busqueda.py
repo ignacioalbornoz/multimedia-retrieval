@@ -26,7 +26,7 @@ def tarea2_busqueda(carpeta_descriptores_radio_Q, carpeta_descritores_canciones_
     #     puede servir la funcion util.leer_objeto() que está definida en util.py
     # Constants for time calculations (these should match the values used in MFCC extraction)
     sample_rate = 22050
-    hop_length = 512  # Number of samples between successive frames
+    hop_length = 22050  # Number of samples between successive frames
 
 
     # Step 1: Load descriptors from Q (radio) and R (songs)
@@ -41,7 +41,7 @@ def tarea2_busqueda(carpeta_descriptores_radio_Q, carpeta_descritores_canciones_
     for archivo_R in archivos_R:
         descr_R = util.leer_objeto(carpeta_descritores_canciones_R, archivo_R)
         descriptores_R.append(descr_R)
-        lengths_R.append(len(descr_R))
+        lengths_R.append(descr_R.shape[0]) 
 
     #  2-para cada descriptor de Q localizar el más cercano en R
     #     podría usar cdist (ver semana 02) o algún índice de busqueda eficiente (Semanas 03-04)
@@ -79,13 +79,15 @@ def tarea2_busqueda(carpeta_descriptores_radio_Q, carpeta_descritores_canciones_
                 # Calculate start and end times for the windows in Q and R
                 start_time_Q = (batch_start + j) * hop_length / sample_rate
                 start_time_R = idx_ventana * hop_length / sample_rate
-                #duracion_R_en_ventanas = lengths_R[archivo_R_idx] 
+                duracion_R_en_ventanas = lengths_R[archivo_R_idx] 
                 # Append the result to the list of similar windows
                 resultados_similares.append([
-                    archivos_Q[i], f"{start_time_Q:.2f}",  # Q file and start time
-                    archivos_R[archivo_R_idx], f"{start_time_R:.2f}",  # R file and start time
-                    f"{minimas_distancias[j]:.4f}" # Distance between the windows
-                    #f"{duracion_R_en_ventanas:.2f}"  # Duración del archivo R
+                    archivos_Q[i], 
+                    f"{start_time_Q:.2f}",  # Q file and start time
+                    archivos_R[archivo_R_idx], 
+                    f"{start_time_R:.2f}",  # R file and start time
+                    f"{minimas_distancias[j]:.4f}", # Distance between the windows
+                    f"{duracion_R_en_ventanas:.2f}"  # Duración del archivo R
                 ])
     #  3-escribir en el archivo archivo_ventanas_similares una estructura que asocie
     #     cada ventana de Q con su ventana más parecida en R

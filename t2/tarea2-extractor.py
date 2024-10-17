@@ -27,19 +27,18 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
 
     sample_rate = 22050
     n_mfcc = 20 
-    n_fft = 2048
-    hop_length = 512
+    n_fft = 22050
+    hop_length = 22050
     for archivo_m4a in archivos_m4a:
         archivo_completo = os.path.join(carpeta_audios_entrada, archivo_m4a)
         
-        # Convert m4a to wav using ffmpeg
         archivo_wav = util.convertir_a_wav(archivo_completo, sample_rate, carpeta_descriptores_salida)
         
-        # Step 3: Load the wav file and normalize it
+        
         samples, sr = librosa.load(archivo_wav, sr=sample_rate)
         samples = librosa.util.normalize(samples)  # Normalize the audio to handle volume variations
         
-        # Compute MFCCs (no delta or chroma, as we're targeting simple cases)
+
         mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
         
         # Apply z-score normalization to MFCCs
@@ -49,14 +48,9 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         chroma = (chroma - np.mean(chroma, axis=1, keepdims=True)) / np.std(chroma, axis=1, keepdims=True)
 
-        #spectral_centroid = librosa.feature.spectral_centroid(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
-        #spectral_bandwidth = librosa.feature.spectral_bandwidth(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
-        #spectral_contrast = librosa.feature.spectral_contrast(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
 
         # Concatenate spectral features with MFCC and Chroma
         combined_features = np.concatenate((mfccs, chroma), axis=0)
-        # Transpose to match the format of descriptors (rows for each window)
-        #descriptores_mfcc = mfccs.T
         combined_features = combined_features.T
         
         #  4-escribir en carpeta_descriptores_salida los descriptores de cada archivo

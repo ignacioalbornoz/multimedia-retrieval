@@ -17,75 +17,120 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
     elif os.path.exists(archivo_detecciones):
         print("ERROR: ya existe archivo {}".format(archivo_detecciones))
         sys.exit(1)
-    sample_rate = 22050
-    n_mfcc = 20 
-    n_fft = 2048
-    hop_length = 512
-    # Implementar la tarea con los siguientes pasos:
-    #
-    #  1-leer el archivo archivo_ventanas_similares (fue creado por tarea2_busqueda)
-    #    puede servir la funcion util.leer_objeto() que está definida en util.py
+
+
+    detecciones = [] 
+
     ventanas_similares = []
-    with open(archivo_ventanas_similares, 'r') as f:
+    with open(archivo_ventanas_similares, 'r') as f: 
         for line in f:
-            q_file, q_start_time, r_file, r_start_time, distancia = line.strip().split("\t")
-            #ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia), float(total_duracion_r)])
-            ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia)])
-    #  2-crear un algoritmo para buscar secuencias similares entre audios
-    #    ver slides de la semana 5 y 7
-    #    identificar grupos de ventanas de Q y R que son similares y pertenecen a las mismas canciones con el mismo desfase
-    detecciones = []
-    confianza = 0
-    for i in range(len(ventanas_similares)):
-        
-
-        q_file, q_start_time, r_file, r_start_time, distancia = ventanas_similares[i]
-        # Duración total del archivo R 
-        #total_ventanas_r = total_duracion_r / (512 / 22050)  # Ventanas en R (basado en hop_length = 512 y sample_rate = 22050)
-        
-        # Initialize or reset detection sequence
-        if i == 0 or q_file != ventanas_similares[i-1][0] or r_file != ventanas_similares[i-1][2]:
-            # Start a new detection sequence
-            q_start = q_start_time
-            _ = r_start_time
-            inicio_tiempo_q = q_start  # Start time of detection in Q
-            desfase = q_start_time - r_start_time  # Constant time offset between Q and R
-            confianza = 0  # Initialize confidence level
+            # Dividimos cada línea por tabulaciones
+            q_file, q_start_time, r_file, r_start_time, distancia, total_ventanas_r = line.strip().split("\t")
             
-        # Check if time offset remains the same for consecutive windows
-        if q_start_time - r_start_time == desfase:
-            confianza += 1  # Increase confidence as more windows align
-        else:
-            #confianza_normalizada = confianza / total_ventanas_r
-            # Add completed detection sequence to the results
-            q_file = q_file.replace('_mfcc.pkl', '.m4a')
-            r_file = r_file.replace('_mfcc.pkl', '.m4a')
-            detecciones.append([
-                q_file,
-                inicio_tiempo_q,  # Start time of detection in Q
-                q_start_time - inicio_tiempo_q,  # Duration of detection in seconds
-                r_file,
-                confianza  # Confidence level
-            ])
-            # Reset for the next sequence
-            q_start = q_start_time
-            _ = r_start_time
-            inicio_tiempo_q = q_start
-            desfase = q_start_time - r_start_time
-            confianza = 1  # Reset confidence level
+            # Añadimos los valores procesados a la lista, convirtiendo los campos necesarios a float
+            ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia), float(total_ventanas_r)])
 
-    # Add the last detection if applicable
-    if confianza > 0:
-        #confianza_normalizada = confianza / total_ventanas_r
-        q_file = q_file.replace('_mfcc.pkl', '.m4a')
-        r_file = r_file.replace('_mfcc.pkl', '.m4a')
-        detecciones.append([
-            q_file,
-            inicio_tiempo_q,
-            q_start_time - inicio_tiempo_q,  # Duration of detection
-            r_file,
-            confianza
-        ])
+    # Obtén los valores únicos del primer parámetro
+    unique_first_params = set(row[0] for row in ventanas_similares)
+
+    # Itera sobre cada valor único del primer parámetro
+    for unique_param in sorted(unique_first_params):
+        # Filtra las filas donde el primer parámetro es igual al valor único actual
+        filtered_data = [row for row in ventanas_similares if row[0] == unique_param]
+        
+        # Ordena las filas por el segundo parámetro (el índice 1 de cada fila)
+        sorted_data = sorted(filtered_data, key=lambda x: float(x[1]))
+        
+        # Imprime el encabezado para cada grupo de datos
+        print(f"\nDatos para: {unique_param}")
+
+        #  2-crear un algoritmo para buscar secuencias similares entre audios
+        #    ver slides de la semana 5 y 7
+        #    identificar grupos de ventanas de Q y R que son similares y pertenecen a las mismas canciones con el mismo desfase
+        candidatos = []
+        #ex_candidatos = [] 
+        #confianza = 0
+        for row in sorted_data:
+            q_file, q_start_time, r_file, r_start_time, distancia, total_ventanas_r = row
+
+            if candidatos == []:
+                # candidato[0] = nombre
+                # candidato[1] = encontrados_totales
+                # candidato[2] = racha_no_encontrados
+                # candidato[3] = total_fotogramas   
+                # candidato[4] = last_r_start_time
+                # candidato[5] = last_q_start_time
+                # candidato[6] = last_q_end_time
+                #
+                #
+                #
+                #
+                #
+                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time]
+                candidatos.append(nuevo_candidato)
+        
+            else:
+                for candidato in candidatos:
+                    nombre=candidato[0]
+                    #encontrados_totales=candidato[1]
+                    #racha_no_encontrados=candidato[2]
+                    #total_fotogramas=candidato[3]
+                    last_r_start_time=candidato[4]
+
+                    if (r_file == nombre):
+                    
+                        if (r_start_time > last_r_start_time):
+                            candidato[1]+=1
+                            candidato[2]=0
+                            candidato[4]=r_start_time
+                            candidato[6] = q_start_time
+
+                        else: 
+                            candidato[2]+=1
+
+
+                    else:
+                        candidato[2]+=1
+                    
+                    if (candidato[2] > candidato[3]):
+                        #ex_candidatos.append(candidato)
+                        #candidatos.remove(candidato)
+                        q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
+                        candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
+                        detecciones.append([
+                            q_file_to_save,
+                            candidato[5],  # Start time of detection in Q
+                            candidato[6] - candidato[5],  # Duration of detection in seconds
+                            candidato[0],
+                            candidato[1]/candidato[3]  # Confidence level
+                        ])
+                        candidatos.remove(candidato)   
+                
+                if all(r_file != candidato[0] for candidato in candidatos):
+                    nuevo_candidato = [r_file, 1, 0, total_ventanas_r, last_r_start_time, q_start_time, q_start_time]
+                    candidatos.append(nuevo_candidato)
+
+                #for ex_candidato in ex_candidatos:
+
+        for candidato in candidatos:
+            q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
+            candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
+            detecciones.append([
+                q_file_to_save,
+                candidato[5],  # Start time of detection in Q
+                candidato[6] - candidato[5],  # Duration of detection in seconds
+                candidato[0],
+                candidato[1]/candidato[3]  # Confidence level
+            ])
+            candidatos.remove(candidato)   
+
+            
+
+
+
+    # HASTA ACA
+
+
     #  3-escribir las detecciones encontradas en archivo_detecciones, en un archivo con 5 columnas:
     #    columna 1: nombre de archivo Q (nombre de archivo en carpeta radio)
     #    columna 2: tiempo de inicio (número, tiempo medido en segundos de inicio de la emisión)
