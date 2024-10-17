@@ -25,6 +25,7 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
     #  2-convertir cada archivo de audio a wav (guardar los wav temporales en carpeta_descriptores_salida)
     #    puede servir la funcion util.convertir_a_wav() que está definida en util.py
 
+    #sample_rate = 22050
     sample_rate = 22050
     n_mfcc = 30
     n_fft = 2205
