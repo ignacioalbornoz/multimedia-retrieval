@@ -26,7 +26,7 @@ def tarea2_busqueda(carpeta_descriptores_radio_Q, carpeta_descritores_canciones_
     #     puede servir la funcion util.leer_objeto() que está definida en util.py
     # Constants for time calculations (these should match the values used in MFCC extraction)
     sample_rate = 22050
-    hop_length = 22050  # Number of samples between successive frames
+    hop_length = 2205  # Number of samples between successive frames
 
 
     # Step 1: Load descriptors from Q (radio) and R (songs)

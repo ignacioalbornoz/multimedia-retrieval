@@ -27,8 +27,8 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
 
     sample_rate = 22050
     n_mfcc = 30
-    n_fft = 22050
-    hop_length = 22050
+    n_fft = 2205
+    hop_length = 2205
     for archivo_m4a in archivos_m4a:
         archivo_completo = os.path.join(carpeta_audios_entrada, archivo_m4a)
         
