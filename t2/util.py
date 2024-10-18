@@ -1,6 +1,6 @@
 # CC5213 - TAREA 2 - RECUPERACIÓN DE INFORMACIÓN MULTIMEDIA
 # 20 septiembre de 2024
-# Alumno: [nombre]
+# Alumno: Ignacio Albornoz Alfaro
 
 # este archivo se puede importar en los .py 
 # para tener funciones compartidas entre todos los  programas

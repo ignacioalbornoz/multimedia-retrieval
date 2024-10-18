@@ -38,20 +38,20 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         
         
         samples, sr = librosa.load(archivo_wav, sr=sample_rate)
-        samples = librosa.util.normalize(samples)  # Normalize the audio to handle volume variations
+        samples = librosa.util.normalize(samples)  
         
 
         mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
         
-        # Apply z-score normalization to MFCCs
+        
         mfccs = (mfccs - np.mean(mfccs, axis=1, keepdims=True)) / np.std(mfccs, axis=1, keepdims=True)
         
-        # Compute Chroma feature
+        
         chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         chroma = (chroma - np.mean(chroma, axis=1, keepdims=True)) / np.std(chroma, axis=1, keepdims=True)
 
         #mfccs = mfccs.T
-        # Concatenate spectral features with MFCC and Chroma
+        
         combined_features = np.concatenate((mfccs, chroma), axis=0)
         combined_features = combined_features.T
         

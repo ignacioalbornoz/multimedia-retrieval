@@ -24,25 +24,20 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
     ventanas_similares = []
     with open(archivo_ventanas_similares, 'r') as f: 
         for line in f:
-            # Dividimos cada línea por tabulaciones
+            
             q_file, q_start_time, r_file, r_start_time, distancia, total_ventanas_r = line.strip().split("\t")
             
-            # Añadimos los valores procesados a la lista, convirtiendo los campos necesarios a float
+            
             ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia), float(total_ventanas_r)])
 
-    # Obtén los valores únicos del primer parámetro
+    
     unique_first_params = set(row[0] for row in ventanas_similares)
 
-    # Itera sobre cada valor único del primer parámetro
+    
     for unique_param in sorted(unique_first_params):
-        # Filtra las filas donde el primer parámetro es igual al valor único actual
+        
         filtered_data = [row for row in ventanas_similares if row[0] == unique_param]
-        
-        # Ordena las filas por el segundo parámetro (el índice 1 de cada fila)
         sorted_data = sorted(filtered_data, key=lambda x: float(x[1]))
-        
-        # Imprime el encabezado para cada grupo de datos
-        print(f"\nDatos para: {unique_param}")
 
         #  2-crear un algoritmo para buscar secuencias similares entre audios
         #    ver slides de la semana 5 y 7
@@ -122,10 +117,10 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                         if (candidato[6] - candidato[5] > 0):
                             detecciones.append([
                                 q_file_to_save,
-                                start_time_detect_in_q,  # Start time of detection in Q
-                                candidato[6] - candidato[5] + candidato[10]-0.1,  # Duration of detection in seconds
+                                start_time_detect_in_q, 
+                                candidato[6] - candidato[5] + candidato[10]-0.1,  
                                 candidato[0],
-                                confianza  # Confidence level
+                                confianza  
                             ])
                         candidatos.remove(candidato)   
                 
@@ -146,18 +141,13 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
             if (candidato[6] - candidato[5] > 0):
                 detecciones.append([
                     q_file_to_save,
-                    start_time_detect_in_q,  # Start time of detection in Q
-                    candidato[6] - candidato[5] + candidato[10]-0.1,  # Duration of detection in seconds
+                    start_time_detect_in_q, 
+                    candidato[6] - candidato[5] + candidato[10]-0.1,  
                     candidato[0],
-                    confianza  # Confidence level
+                    confianza  
                 ])
             candidatos.remove(candidato)   
 
-            
-
-
-
-    # HASTA ACA
 
 
     #  3-escribir las detecciones encontradas en archivo_detecciones, en un archivo con 5 columnas:
