@@ -72,7 +72,22 @@ def dividir_en_zonas(image, num_zonas=4):
                       for i in range(num_zonas) for j in range(num_zonas)])
     return zonas
 
+
 def calcular_descriptores_grayscale(image):
+    """Calcula y concatena los descriptores en escala de grises y el histograma de colores."""
+    # Calcular descriptores en escala de grises
+    descriptores_grayscale = calcular_descriptores_grayscale_original(image)
+    
+    # Calcular el histograma de color
+    descriptores_color = calcular_histograma_color(image)
+    
+    # Concatenar ambos descriptores
+    descriptores_concatenados_original = np.concatenate((descriptores_grayscale, descriptores_color))
+    
+    return descriptores_concatenados_original
+
+
+def calcular_descriptores_grayscale_original(image):
     """Calcula y normaliza descriptores en escala de grises para cada zona de una imagen."""
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     zonas = dividir_en_zonas(grayscale_image)
@@ -86,7 +101,7 @@ def calcular_descriptores_grayscale(image):
         histograma = cv2.normalize(histograma, histograma).flatten()
         descriptores.extend(histograma)
 
-    return np.array(descriptores), grayscale_image
+    return np.array(descriptores)
 
 
 def calcular_histograma_color(image):
@@ -105,6 +120,22 @@ def calcular_histograma_color(image):
 
 
 
+
+def calcular_descriptores_flip(image):
+    # Flip horizontal
+    flipped_horizontal = cv2.flip(image, 1)
+    # Flip vertical
+    flipped_vertical = cv2.flip(image, 0)
+    # Flip en ambas direcciones (horizontal y vertical)
+    flipped_both = cv2.flip(image, -1)
+
+    desc_flipped_horizontal = calcular_descriptores_grayscale(flipped_horizontal)
+    desc_flipped_vertical = calcular_descriptores_grayscale(flipped_vertical)
+    desc_flipped_both = calcular_descriptores_grayscale(flipped_both)
+
+    return desc_flipped_horizontal, desc_flipped_vertical, desc_flipped_both
+
+'''
 def calcular_descriptores_flip(image):
     """Calcula descriptores por zonas para las versiones reflejadas horizontal, vertical y ambas direcciones."""
     
@@ -141,7 +172,7 @@ def calcular_descriptores_flip(image):
         descriptores_flip_both.extend(hist_both)
     
     return np.array(descriptores_flip_h), np.array(descriptores_flip_v), np.array(descriptores_flip_both)
-
+'''
 
 def calcular_descriptor_gaussiano(image):
     """Aplica un filtro gaussiano por zonas y calcula descriptores normalizados por zonas."""
@@ -185,6 +216,9 @@ def calcular_histograma_hsv(image, num_zonas=4, size=(128, 128)):
         hog_descriptor = hog(zona, orientations=6, pixels_per_cell=(8, 8),
                              cells_per_block=(2, 2), block_norm='L2-Hys', transform_sqrt=True)
         hog_descriptor = np.array(hog_descriptor, dtype=np.float32)
+        # Normalizar el descriptor HOG al igual que el histograma
+        hog_descriptor = cv2.normalize(hog_descriptor, hog_descriptor).flatten()
+        
         descriptores.extend(hog_descriptor)
     
     return np.array(descriptores)
