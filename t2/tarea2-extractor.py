@@ -42,14 +42,14 @@ def tarea2_extractor(carpeta_audios_entrada, carpeta_descriptores_salida):
         
 
         mfccs = librosa.feature.mfcc(y=samples, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
-        
+        # borrar primera fila
         
         mfccs = (mfccs - np.mean(mfccs, axis=1, keepdims=True)) / np.std(mfccs, axis=1, keepdims=True)
         
         
         chroma = librosa.feature.chroma_stft(y=samples, sr=sr, n_fft=n_fft, hop_length=hop_length)
         chroma = (chroma - np.mean(chroma, axis=1, keepdims=True)) / np.std(chroma, axis=1, keepdims=True)
-
+        # ver coordenada 0
         #mfccs = mfccs.T
         
         combined_features = np.concatenate((mfccs, chroma), axis=0)

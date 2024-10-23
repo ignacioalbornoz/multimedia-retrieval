@@ -7,6 +7,17 @@ import os
 import util as util
 import librosa
 
+class Candidato:
+    def __init__(self, nombre, encontrados_totales, racha_no_encontrados, total_fotogramas, last_r_start_time, init_q_start_time, last_q_start_time, min_distance, init_r_start_time):
+        self.nombre = nombre
+        self.encontrados_totales = encontrados_totales
+        self.racha_no_encontrados = racha_no_encontrados
+        self.total_fotogramas = total_fotogramas
+        self.last_r_start_time = last_r_start_time
+        self.init_q_start_time = init_q_start_time
+        self.last_q_start_time = last_q_start_time
+        self.min_distance = min_distance
+        self.init_r_start_time = init_r_start_time
 
 
 
@@ -26,14 +37,10 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
         for line in f:
             
             q_file, q_start_time, r_file, r_start_time, distancia, total_ventanas_r = line.strip().split("\t")
-            
-            
             ventanas_similares.append([q_file, float(q_start_time), r_file, float(r_start_time), float(distancia), float(total_ventanas_r)])
 
-    
     unique_first_params = set(row[0] for row in ventanas_similares)
 
-    
     for unique_param in sorted(unique_first_params):
         
         filtered_data = [row for row in ventanas_similares if row[0] == unique_param]
@@ -54,96 +61,120 @@ def tarea2_deteccion(archivo_ventanas_similares, archivo_detecciones):
                 # candidato[2] = racha_no_encontrados
                 # candidato[3] = total_fotogramas   
                 # candidato[4] = last_r_start_time
-                # candidato[5] = q_start_time
-                # candidato[6] = last_q_end_time
-                # candidato[7] = min_distancia
-                # candidato[8] = promedio
-                # candidato[9] = init_r
-                # candidato[10] = final_r
-                # candidato[11] = max_distancia aun no
-
-                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time, distancia, distancia, r_start_time,r_start_time]
+                # candidato[5] = init_q_start_time
+                # candidato[6] = last_q_start_time
+                # candidato[7] = min_distance
+                # candidato[8] = init_r_start_time
+                
+                nuevo_candidato = Candidato(nombre=r_file,
+                                            encontrados_totales=1,
+                                            racha_no_encontrados=0,
+                                            total_fotogramas=total_ventanas_r,
+                                            init_r_start_time=r_start_time,
+                                            last_r_start_time=r_start_time,
+                                            init_q_start_time=q_start_time,
+                                            last_q_start_time=q_start_time,
+                                            min_distance=distancia)
                 candidatos.append(nuevo_candidato)
+
         
             else:
                 for candidato in candidatos:
-                    nombre=candidato[0]
-                    #encontrados_totales=candidato[1]
-                    #racha_no_encontrados=candidato[2]
-                    #total_fotogramas=candidato[3]
-                    last_r_start_time=candidato[4]
 
-                    if (r_file == nombre):
+                    if (r_file == candidato.nombre):
                     
-                        if (r_start_time > last_r_start_time):
-                            candidato[1]+=1
-                            candidato[2]=0
-                            candidato[4]=r_start_time
-                            candidato[6] = q_start_time
-                            candidato[8] = (candidato[8]+distancia)/candidato[1]
-                            candidato[10] = r_start_time
+                        if (r_start_time > candidato.last_r_start_time):
+                            candidato.encontrados_totales+=1
+                            candidato.racha_no_encontrados=0
+                            candidato.last_r_start_time=r_start_time
+                            candidato.last_q_start_time = q_start_time
                             
+                            if distancia < candidato.min_distance:
+                                candidato.min_distance = distancia
+                            # promedio
+                            # varianza
 
 
-                        elif (r_start_time == last_r_start_time):
-                            if(distancia < candidato[8]) and candidato[1]==1:
+                        elif (r_start_time == candidato.last_r_start_time):
+                            if(distancia < candidato.min_distance) and candidato.encontrados_totales==1:
                                 candidatos.remove(candidato)
-                                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time, distancia, distancia,r_start_time,r_start_time]
+                                nuevo_candidato = Candidato(nombre=r_file,
+                                                            encontrados_totales=1,
+                                                            racha_no_encontrados=0,
+                                                            total_fotogramas=total_ventanas_r,
+                                                            init_r_start_time=r_start_time,
+                                                            last_r_start_time=r_start_time,
+                                                            init_q_start_time=q_start_time,
+                                                            last_q_start_time=q_start_time,
+                                                            min_distance=distancia)
                                 candidatos.append(nuevo_candidato)
                             else:
-                                candidato[2]+=1
+                                candidato.racha_no_encontrados+=1
 
                             
-                        elif (r_start_time < last_r_start_time):
-                            if distancia < candidato[8]:
+                        elif (r_start_time < candidato.last_r_start_time):
+                            if distancia < candidato.min_distance:
                                 candidatos.remove(candidato)
-                                nuevo_candidato = [r_file, 1, 0, total_ventanas_r, r_start_time, q_start_time, q_start_time, distancia, distancia,r_start_time,r_start_time]
+                                nuevo_candidato = Candidato(nombre=r_file,
+                                                            encontrados_totales=1,
+                                                            racha_no_encontrados=0,
+                                                            total_fotogramas=total_ventanas_r,
+                                                            init_r_start_time=r_start_time,
+                                                            last_r_start_time=r_start_time,
+                                                            init_q_start_time=q_start_time,
+                                                            last_q_start_time=q_start_time,
+                                                            min_distance=distancia)
                                 candidatos.append(nuevo_candidato)
                                 
                             else:
-                                candidato[2]+=1
+                                candidato.racha_no_encontrados+=1
 
                     else:
-                        candidato[2]+=1
+                        candidato.racha_no_encontrados+=1
                     
-                    if (candidato[2] > candidato[3]):
-                        #ex_candidatos.append(candidato)
-                        #candidatos.remove(candidato)
+                    if (candidato.racha_no_encontrados > candidato.total_fotogramas):
                         q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
-                        candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
-                        #confianza = (candidato[1]/candidato[3] ) * (1/candidato[7])
-                        confianza = (candidato[1]/candidato[3] ) *  (1/candidato[8])
-                        start_time_detect_in_q = candidato[5] - candidato[9]
-                        if (candidato[6] - candidato[5] > 0):
+                        candidato.nombre = candidato.nombre.replace('_mfcc.pkl', '.m4a')
+                       
+                        confianza = (candidato.encontrados_totales/candidato.total_fotogramas) *  (1/candidato.min_distance)
+                        start_time_detect_in_q = candidato.init_q_start_time - candidato.init_r_start_time
+                        if ((candidato.last_q_start_time - candidato.init_q_start_time) > 0) and ((candidato.last_r_start_time - candidato.init_r_start_time) > 0):
                             detecciones.append([
                                 q_file_to_save,
                                 start_time_detect_in_q, 
-                                candidato[6] - candidato[5] + candidato[10]-0.1,  
-                                candidato[0],
+                                candidato.total_fotogramas*0.1,  
+                                candidato.nombre,
                                 confianza  
                             ])
                         candidatos.remove(candidato)   
                 
-                if all(r_file != candidato[0] for candidato in candidatos):
-
-                    nuevo_candidato = [r_file, 1, 0, total_ventanas_r, last_r_start_time, q_start_time, q_start_time, distancia, distancia, r_start_time,r_start_time]
+                if all(r_file != candidato.nombre for candidato in candidatos):
+                    nuevo_candidato = Candidato(nombre=r_file,
+                                                encontrados_totales=1,
+                                                racha_no_encontrados=0,
+                                                total_fotogramas=total_ventanas_r,
+                                                init_r_start_time=r_start_time,
+                                                last_r_start_time=r_start_time,
+                                                init_q_start_time=q_start_time,
+                                                last_q_start_time=q_start_time,
+                                                min_distance=distancia)
                     candidatos.append(nuevo_candidato)
 
                 #for ex_candidato in ex_candidatos:
 
         for candidato in candidatos:
             q_file_to_save = q_file.replace('_mfcc.pkl', '.m4a')
-            candidato[0] = candidato[0].replace('_mfcc.pkl', '.m4a')
-            #confianza = (candidato[1]/candidato[3] ) * (1/candidato[7])
+            candidato.nombre = candidato.nombre.replace('_mfcc.pkl', '.m4a')
+            
+            confianza = (candidato.encontrados_totales/candidato.total_fotogramas) *  (1/candidato.min_distance)
+            start_time_detect_in_q = candidato.init_q_start_time - candidato.init_r_start_time
 
-            confianza = (candidato[1]/candidato[3] ) *  (1/candidato[8])
-            start_time_detect_in_q = candidato[5] - candidato[9]
-            if (candidato[6] - candidato[5] > 0):
+            if ((candidato.last_q_start_time - candidato.init_q_start_time) > 0) and ((candidato.last_r_start_time - candidato.init_r_start_time) > 0):
                 detecciones.append([
                     q_file_to_save,
                     start_time_detect_in_q, 
-                    candidato[6] - candidato[5] + candidato[10]-0.1,  
-                    candidato[0],
+                    candidato.total_fotogramas*0.1,  
+                    candidato.nombre,
                     confianza  
                 ])
             candidatos.remove(candidato)   
