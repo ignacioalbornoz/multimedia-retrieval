@@ -9,7 +9,6 @@ import pickle
 
 import cv2
 import numpy as np
-from skimage.feature import local_binary_pattern
 
 # Retorna tods los archivos .jpg que estan en una carpeta
 def listar_archivos_en_carpeta(imagenes_dir):
@@ -80,9 +79,13 @@ def calcular_descriptores_grayscale(image):
     
     # Calcular el histograma de color
     descriptores_color = calcular_histograma_color(image)
+
+    #descriptores_hog = calcular_histograma_hog(image)
+    descriptores_gauss = calcular_descriptor_gaussiano(image)
+
     
     # Concatenar ambos descriptores
-    descriptores_concatenados_original = np.concatenate((descriptores_grayscale, descriptores_color))
+    descriptores_concatenados_original = np.concatenate((descriptores_grayscale, descriptores_color, descriptores_gauss))
     
     return descriptores_concatenados_original
 
@@ -198,7 +201,7 @@ def calcular_descriptor_gaussiano(image):
 
 from skimage.feature import hog
 
-def calcular_histograma_hsv(image, num_zonas=4, size=(128, 128)):
+def calcular_histograma_hog(image, num_zonas=4, size=(128, 128)):
     """Calcula el descriptor HOG por zonas, dividiendo la imagen en num_zonas x num_zonas zonas."""
 
     # Redimensionar la imagen a un tamaño estándar
