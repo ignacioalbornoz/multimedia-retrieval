@@ -72,6 +72,8 @@ def dividir_en_zonas(image, num_zonas=4):
     return zonas
 
 
+
+
 def calcular_descriptores_grayscale(image):
     """Calcula y concatena los descriptores en escala de grises y el histograma de colores."""
     # Calcular descriptores en escala de grises
@@ -83,7 +85,7 @@ def calcular_descriptores_grayscale(image):
     #descriptores_hog = calcular_histograma_hog(image)
     descriptores_gauss = calcular_descriptor_gaussiano(image)
 
-    
+
     # Concatenar ambos descriptores
     descriptores_concatenados_original = np.concatenate((descriptores_grayscale, descriptores_color, descriptores_gauss))
     
@@ -128,16 +130,16 @@ def calcular_descriptores_flip(image):
     # Flip horizontal
     flipped_horizontal = cv2.flip(image, 1)
     # Flip vertical
-    flipped_vertical = cv2.flip(image, 0)
+    #flipped_vertical = cv2.flip(image, 0)
     # Flip en ambas direcciones (horizontal y vertical)
-    flipped_both = cv2.flip(image, -1)
+    #flipped_both = cv2.flip(image, -1)
 
     desc_flipped_horizontal = calcular_descriptores_grayscale(flipped_horizontal)
-    desc_flipped_vertical = calcular_descriptores_grayscale(flipped_vertical)
-    desc_flipped_both = calcular_descriptores_grayscale(flipped_both)
+    #desc_flipped_vertical = calcular_descriptores_grayscale(flipped_vertical)
+    #desc_flipped_both = calcular_descriptores_grayscale(flipped_both)
 
-    return desc_flipped_horizontal, desc_flipped_vertical, desc_flipped_both
-
+    return desc_flipped_horizontal
+    
 '''
 def calcular_descriptores_flip(image):
     """Calcula descriptores por zonas para las versiones reflejadas horizontal, vertical y ambas direcciones."""

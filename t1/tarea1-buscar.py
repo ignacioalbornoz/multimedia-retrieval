@@ -37,7 +37,8 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
         
         # Calcula los descriptores de cada imagen
         descriptor_q_grayscale = util.calcular_descriptores_grayscale(image)
-        descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_flip(image)
+        descriptor_flip_h = util.calcular_descriptores_flip(image)
+        #descriptor_flip_h, descriptor_flip_v, descriptor_flip_both  = util.calcular_descriptores_flip(image)
         #descriptor_q_color = util.calcular_histograma_color(image)
         #descriptor_gaussiano = util.calcular_descriptor_gaussiano(image)
         #descriptor_hsv = util.calcular_histograma_hsv(image)
@@ -48,8 +49,8 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
             'grayscale': descriptor_q_grayscale,
             #'color': descriptor_q_color,
             'flip_h': descriptor_flip_h,
-            'flip_v': descriptor_flip_v,
-            'flip_both': descriptor_flip_both,
+            #'flip_v': descriptor_flip_v,
+            #'flip_both': descriptor_flip_both,
             #'gaussian': descriptor_gaussiano,
             #'hsv': descriptor_hsv,
         }
@@ -82,8 +83,8 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
         distancias_grayscale = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['grayscale'], axis=1)
         #distancias_color = np.linalg.norm(descriptores_r_matriz_color - descriptor_q['color'], axis=1)
         distancias_flip_h = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['flip_h'], axis=1)
-        distancias_flip_v = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['flip_v'], axis=1)
-        distancias_flip_both = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['flip_both'], axis=1)
+        #distancias_flip_v = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['flip_v'], axis=1)
+        #distancias_flip_both = np.linalg.norm(descriptores_r_matriz_grayscale - descriptor_q['flip_both'], axis=1)
         #distancias_gauss = np.linalg.norm(descriptores_r_matriz_gaussiano - descriptor_q['gaussian'], axis=1)
         #distancias_hog = np.linalg.norm(descriptors_r_matriz_hsv - descriptor_q['hsv'], axis=1)
 
@@ -94,7 +95,8 @@ def tarea1_buscar(dir_input_imagenes_Q, dir_input_descriptores_R, file_output_re
         #distancias_totales = np.minimum.reduce([distancias_hog, distancias_grayscale, distancias_color, distancias_gauss, distancias_flip_h, distancias_flip_v, distancias_flip_both])
 
         #distancias_totales = np.minimum.reduce([distancias_grayscale])
-        distancias_totales = np.minimum.reduce([distancias_grayscale, distancias_flip_h, distancias_flip_v, distancias_flip_both])
+        distancias_totales = np.minimum.reduce([distancias_grayscale, distancias_flip_h])
+        #distancias_totales = np.minimum.reduce([distancias_grayscale, distancias_flip_h, distancias_flip_v, distancias_flip_both])
         indice_minimo = np.argmin(distancias_totales)
 
         imagen_r_minima = imagenes_r[indice_minimo]
