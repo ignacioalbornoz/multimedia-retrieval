@@ -1,6 +1,5 @@
 # CC5213 - TAREA 2 - RECUPERACIÓN DE INFORMACIÓN MULTIMEDIA
 ## Profesor: Juan Manuel Barrios
-## 20 septiembre de 2024
 
 # Tarea 2
 
