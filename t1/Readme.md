@@ -1,5 +1,4 @@
 # CC5213 - TAREA 1 - RECUPERACIÓN DE INFORMACIÓN MULTIMEDIA
-## 11 de agosto de 2024
 ## Profesor: Juan Manuel Barrios
 
 # Tarea 1
@@ -42,3 +41,4 @@ Si quiere probar la tarea con un solo dataset, puede ejecutar:
 `python evaluarTarea1.py a`
 
 Su tarea no puede demorar más de 15 minutos en cada dataset.
+
